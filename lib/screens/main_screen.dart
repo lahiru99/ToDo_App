@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:todo_app/screens/home_screen.dart';
-import 'package:todo_app/screens/share_screen.dart';
-import 'package:todo_app/screens/profile_screen.dart';
+import 'package:glyph/screens/home_screen.dart';
+import 'package:glyph/screens/share_screen.dart';
+import 'package:glyph/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   @override

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/screens/main_screen.dart';
-import 'package:todo_app/services/auth_service.dart';
+import 'package:glyph/screens/main_screen.dart';
+import 'package:glyph/services/auth_service.dart';
 
 void main() {
   runApp(
@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Todo App',
+      title: 'GLYPH',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
         primaryColor: Colors.black,

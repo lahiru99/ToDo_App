@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_app/services/auth_service.dart';
-import 'package:todo_app/screens/home_screen.dart';
+import 'package:glyph/services/auth_service.dart';
+import 'package:glyph/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
