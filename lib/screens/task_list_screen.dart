@@ -1,18 +1,187 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class TaskListScreen extends StatelessWidget {
+class TaskListScreen extends StatefulWidget {
   final String listName;
 
   TaskListScreen({required this.listName});
 
-  final List<String> todoItems = [
-    'Call',
-    'Get Groceries',
-    'Go to the Gym',
-    'Read a Book',
-    'Meditate',
-    'Plan my next trip',
-  ];
+  @override
+  _TaskListScreenState createState() => _TaskListScreenState();
+}
+
+class _TaskListScreenState extends State<TaskListScreen> {
+  late List<TaskItem> todoItems;
+  late SharedPreferences prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    prefs = await SharedPreferences.getInstance();
+    final String? tasksJson = prefs.getString('tasks_${widget.listName}');
+
+    if (tasksJson != null) {
+      final List<dynamic> tasksList = json.decode(tasksJson);
+      setState(() {
+        todoItems = tasksList.map((task) => TaskItem.fromJson(task)).toList();
+      });
+    } else {
+      // Load default tasks if no saved tasks exist
+      setState(() {
+        todoItems = _getDefaultTasksForCategory(widget.listName);
+      });
+      _saveTasks(); // Save the default tasks
+    }
+  }
+
+  Future<void> _saveTasks() async {
+    final String tasksJson =
+        json.encode(todoItems.map((task) => task.toJson()).toList());
+    await prefs.setString('tasks_${widget.listName}', tasksJson);
+  }
+
+  List<TaskItem> _getDefaultTasksForCategory(String categoryName) {
+    switch (categoryName.toLowerCase()) {
+      case 'things to do':
+        return [
+          TaskItem('Call mom', false),
+          TaskItem('Get Groceries', false),
+          TaskItem('Go to the Gym', false),
+          TaskItem('Read a Book', false),
+          TaskItem('Meditate', false),
+          TaskItem('Plan my next trip', false),
+        ];
+      case 'notes':
+        return [
+          TaskItem('Meeting notes from yesterday', false),
+          TaskItem('Ideas for weekend project', false),
+          TaskItem('Shopping list ideas', false),
+        ];
+      case 'grocery list':
+        return [
+          TaskItem('Milk', false),
+          TaskItem('Bread', false),
+          TaskItem('Eggs', false),
+          TaskItem('Bananas', false),
+          TaskItem('Chicken breast', false),
+          TaskItem('Rice', false),
+          TaskItem('Tomatoes', false),
+          TaskItem('Onions', false),
+          TaskItem('Cheese', false),
+          TaskItem('Yogurt', false),
+          TaskItem('Cereal', false),
+          TaskItem('Orange juice', false),
+          TaskItem('Coffee beans', false),
+        ];
+      case 'work':
+        return [
+          TaskItem('Review project proposal', false),
+          TaskItem('Schedule team meeting', false),
+          TaskItem('Update project timeline', false),
+          TaskItem('Prepare presentation slides', false),
+          TaskItem('Follow up with client', false),
+        ];
+      case 'books to read':
+        return [
+          TaskItem('The Pragmatic Programmer', false),
+          TaskItem('Clean Code', false),
+          TaskItem('Design Patterns', false),
+          TaskItem('Flutter in Action', false),
+        ];
+      case 'movies to watch':
+        return [
+          TaskItem('Inception', false),
+          TaskItem('The Matrix', false),
+          TaskItem('Interstellar', false),
+          TaskItem('Blade Runner 2049', false),
+        ];
+      case 'personal':
+        return [
+          TaskItem('Call dentist for appointment', false),
+          TaskItem('Plan birthday party', false),
+          TaskItem('Organize photos', false),
+          TaskItem('Update resume', false),
+        ];
+      case 'places to visit':
+        return [
+          TaskItem('Paris, France', false),
+          TaskItem('Tokyo, Japan', false),
+          TaskItem('New York, USA', false),
+          TaskItem('London, UK', false),
+        ];
+      default:
+        return [
+          TaskItem('Add your first task', false),
+        ];
+    }
+  }
+
+  void _toggleTask(int index) {
+    setState(() {
+      todoItems[index].isCompleted = !todoItems[index].isCompleted;
+    });
+    _saveTasks(); // Save after toggling
+  }
+
+  void _addNewTask() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        String newTaskText = '';
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: Text('Add New Task', style: TextStyle(color: Colors.white)),
+          content: TextField(
+            style: TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Enter task name',
+              hintStyle: TextStyle(color: Colors.grey),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.blue),
+              ),
+            ),
+            onChanged: (value) {
+              newTaskText = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: Text('Add'),
+              onPressed: () {
+                if (newTaskText.trim().isNotEmpty) {
+                  setState(() {
+                    todoItems.add(TaskItem(newTaskText.trim(), false));
+                  });
+                  _saveTasks(); // Save after adding
+                  Navigator.of(context).pop();
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteTask(int index) {
+    setState(() {
+      todoItems.removeAt(index);
+    });
+    _saveTasks(); // Save after deleting
+  }
 
   void _showShareOptions(BuildContext context) {
     showModalBottomSheet(
@@ -94,7 +263,7 @@ class TaskListScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text(listName, style: TextStyle(color: Colors.white)),
+        title: Text(widget.listName, style: TextStyle(color: Colors.white)),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -112,28 +281,102 @@ class TaskListScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: todoItems.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            leading: Icon(Icons.circle_outlined, color: Colors.white, size: 20),
-            title: Text(
-              todoItems[index],
-              style: TextStyle(color: Colors.white, fontSize: 16),
+      body: todoItems.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.task_alt, size: 64, color: Colors.grey[600]),
+                  SizedBox(height: 16),
+                  Text(
+                    'No tasks yet',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap the + button to add your first task',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              itemCount: todoItems.length,
+              itemBuilder: (context, index) {
+                final task = todoItems[index];
+                return Dismissible(
+                  key: Key(task.id),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.only(right: 16),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                  direction: DismissDirection.endToStart,
+                  onDismissed: (direction) => _deleteTask(index),
+                  child: ListTile(
+                    leading: IconButton(
+                      icon: Icon(
+                        task.isCompleted
+                            ? Icons.check_circle
+                            : Icons.circle_outlined,
+                        color: task.isCompleted ? Colors.green : Colors.white,
+                        size: 24,
+                      ),
+                      onPressed: () => _toggleTask(index),
+                    ),
+                    title: Text(
+                      task.text,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        decoration: task.isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
+                        decorationColor: Colors.grey,
+                      ),
+                    ),
+                    onTap: () => _toggleTask(index),
+                  ),
+                );
+              },
             ),
-            onTap: () {
-              // TODO: Implement task completion
-            },
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Implement add new task functionality
-        },
+        onPressed: _addNewTask,
         child: Icon(Icons.add),
         backgroundColor: Colors.blue,
       ),
+    );
+  }
+}
+
+class TaskItem {
+  final String id;
+  final String text;
+  bool isCompleted;
+
+  TaskItem(this.text, this.isCompleted)
+      : id = DateTime.now().millisecondsSinceEpoch.toString();
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'text': text,
+      'isCompleted': isCompleted,
+    };
+  }
+
+  factory TaskItem.fromJson(Map<String, dynamic> json) {
+    return TaskItem(
+      json['text'] as String,
+      json['isCompleted'] as bool,
     );
   }
 }

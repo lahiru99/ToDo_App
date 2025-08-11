@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'GLYPH',
+      title: 'ToDoz',
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
         primaryColor: Colors.black,
@@ -36,9 +36,9 @@ class MyApp extends StatelessWidget {
           color: Color(0xFF1E1E1E),
         ),
         textTheme: TextTheme(
-          headline6: TextStyle(
+          headlineSmall: TextStyle(
               fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
-          bodyText2: TextStyle(fontSize: 16, color: Colors.white),
+          bodyMedium: TextStyle(fontSize: 16, color: Colors.white),
         ),
       ),
       home: MainScreen(),

@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   provider: ^6.0.0 # Add this line
   flutter_staggered_animations: ^1.1.1 # Add this line
+  shared_preferences: ^2.2.2 # Add this line for local storage
 
 dev_dependencies:
   flutter_test:
